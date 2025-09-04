@@ -1,0 +1,30 @@
+[
+  {
+    "name": "US - New York #1",
+    "country": "United States",
+    "latency_ms": 35,
+    "public_key": "PUBKEY-ny-1",
+    "endpoint_ip": "34.213.12.45"
+  },
+  {
+    "name": "US - San Francisco #2",
+    "country": "United States",
+    "latency_ms": 48,
+    "public_key": "PUBKEY-sf-2",
+    "endpoint_ip": "13.57.100.67"
+  },
+  {
+    "name": "UK - London #1",
+    "country": "United Kingdom",
+    "latency_ms": 72,
+    "public_key": "PUBKEY-lon-1",
+    "endpoint_ip": "18.130.200.11"
+  },
+  {
+    "name": "NG - Lagos #1",
+    "country": "Nigeria",
+    "latency_ms": 180,
+    "public_key": "PUBKEY-lagos-1",
+    "endpoint_ip": "102.130.34.22"
+  }
+]

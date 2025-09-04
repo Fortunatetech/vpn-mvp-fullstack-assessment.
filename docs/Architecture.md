@@ -1,0 +1,2 @@
+=== File: client-windows/VPNMvp/ProgramNotes.txt ===
+Notes: App uses basic DI via Microsoft.Extensions.DependencyInjection. App.Services is available to resolve Views/ViewModels in code-behind for simple navigation.
