@@ -67,6 +67,96 @@ After signing in you will see the node list. Click **Connect** to simulate a con
 
 ---
 
+## AI Prompts
+
+#### Prompt 1 — Scaffold WPF MVVM skeleton (frontend)
+Generate a minimal WPF MVVM project skeleton in C# for .NET 8 that includes:
+- App.xaml/App.xaml.cs wiring dependency injection
+- MainWindow that hosts views via ContentControl
+- SignInView + NodeListView XAML & code-behind
+- ViewModels: SignInViewModel, NodeListViewModel, BaseViewModel, RelayCommand
+- Services: IAuthService, INodeService, IVpnConnectionService and a VpnConnectionSimulator
+Keep code short, runnable, and show exact file names and folder layout.
+
+#### Prompt 2 — Create mock backend (Express)
+Create a small Node.js Express mock backend for local development:
+- Expose POST /api/v1/auth/login (mocked single user)
+- Expose GET /api/v1/nodes (return JSON from data/nodes.json)
+- Provide a simple health check GET /health
+- Provide package.json and a start script
+Keep implementation minimal and easy to run with `npm install and npm start`.
+
+#### Prompt 3 — Help debug XAML/UX issue 
+I'm getting 'Set property UIElement.Effect threw an exception' in SignInView.xaml.
+Suggest a safe, portable replacement for using DynamicResource SystemParameters.DropShadowKey 
+so the SignIn card uses a drop shadow without runtime exceptions.
+Also produce the fully updated SignInView.xaml using that fix.
+
+## AI bugs + fixes
+Broken AI-generated snippet (given earlier) — and debug explanation
+Broken snippet (AI forgot to await the HTTP call)
+
+This is the exact broken code the AI gave earlier (it looks plausible but is incorrect):
+
+```csharp
+public async Task<bool> LoginAsync(string email, string password)
+{
+    // AI forgot to await the HTTP call and returns true always when status code is 200
+    var response = httpClient.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+    {
+        return true; // but response is Task<HttpResponseMessage> -> accessing StatusCode is invalid
+    }
+    return false;
+}
+```
+Why it’s broken (explanation)
+
+PostAsJsonAsync(...) returns a Task<HttpResponseMessage>. The code assigns that task to response but never awaits it.
+
+Accessing response.StatusCode is attempting to access a property on the Task object, not on the HttpResponseMessage result — this is a type error and causes runtime/compile issues.
+
+Also, the method returns true or false without reading or validating the response body (token parsing missing).
+
+Fixed version (corrected code):
+```csharp
+public async Task<bool> LoginAsync(string email, string password)
+{
+    var response = await httpClient.PostAsJsonAsync("/api/v1/auth/login", new { email, password });
+    if (!response.IsSuccessStatusCode) return false;
+
+    var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
+    // store token temporarily (demo only)
+    return body != null && !string.IsNullOrEmpty(body.Token);
+}
+
+```
+Notes about the fix
+
+Always await asynchronous HTTP calls before inspecting the result.
+
+Prefer response.IsSuccessStatusCode (covers 200–299).
+
+Parse the JSON body to get the token and persist it if needed.
+
+
+## Extra broken item you encountered & short fix
+
+While not a pure **AI-code bug**, one runtime error we hit was:
+
+```
+Set property 'UIElement.Effect' threw an exception
+```
+
+This came from using:
+
+```xml
+Effect="{DynamicResource {x:Static SystemParameters.DropShadowKey}}"
+```
+
+On some machines that dynamic resource is not available or invalid. The safe fix is to replace that with an explicit `DropShadowEffect` (see the `SignInView.xaml` above) or remove the `Effect` entirely.
+
+
 ## What the project contains (short)
 
 vpn_mvp_windows/
